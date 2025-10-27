@@ -1,0 +1,32 @@
+{
+  "name": "obscuro",
+  "version": "1.0.0",
+  "description": "Chrome extension to hide sensitive data during demos and presentations",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && node build.js",
+    "watch": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write \"src/**/*.{ts,js,json,css,html}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,css,html}\"",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "chrome-extension",
+    "privacy",
+    "data-masking",
+    "demo",
+    "presentation",
+    "sensitive-data"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.2"
+  }
+}

@@ -1,0 +1,18 @@
+/* Obscuro - Sensitive Data Blur Effect */
+
+.blurred {
+  filter: blur(4px);
+  -webkit-filter: blur(4px);
+  transition: filter 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Optional: Add a subtle background to make blurred content more obvious */
+.blurred[data-censor="1"] {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0 2px;
+  border-radius: 2px;
+}

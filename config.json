@@ -1,0 +1,30 @@
+{
+  "version": "1",
+  "selectors": [
+    "[data-sensitive='true']",
+    ".ssn",
+    ".credit-card"
+  ],
+  "regex": [
+    {
+      "pattern": "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+      "flags": "gi"
+    }
+  ],
+  "ignore": {
+    "selectors": [
+      ".public-data",
+      "#marketing-section *"
+    ],
+    "regex": [
+      {
+        "pattern": "support@mycompany\\.com",
+        "flags": "i"
+      },
+      {
+        "pattern": "demo[0-9]+@example\\.com",
+        "flags": "i"
+      }
+    ]
+  }
+}

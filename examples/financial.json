@@ -1,0 +1,54 @@
+{
+  "version": "1",
+  "selectors": [
+    "[data-sensitive='true']",
+    ".account-number",
+    ".routing-number",
+    ".credit-card",
+    ".balance",
+    ".transaction-amount",
+    ".customer-name",
+    "input[name='account']",
+    "input[name='card_number']",
+    "[data-financial='true']"
+  ],
+  "regex": [
+    {
+      "pattern": "\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b",
+      "flags": "g"
+    },
+    {
+      "pattern": "\\b\\d{9}\\b",
+      "flags": "g"
+    },
+    {
+      "pattern": "\\$[\\d,]+\\.\\d{2}",
+      "flags": "g"
+    },
+    {
+      "pattern": "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+      "flags": "gi"
+    },
+    {
+      "pattern": "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+      "flags": "g"
+    }
+  ],
+  "ignore": {
+    "selectors": [
+      ".public-rates",
+      ".marketing-content",
+      ".footer-info"
+    ],
+    "regex": [
+      {
+        "pattern": "support@bank\\.com",
+        "flags": "i"
+      },
+      {
+        "pattern": "\\$0\\.00",
+        "flags": "g"
+      }
+    ]
+  }
+}
