@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Obscuro - Sensitive Data Hider",
   "version": "1.0.0",
-  "description": "Hide sensitive data during demos and presentations. Perfect for SaaS demos on real customer environments.",
+  "description": "Hide sensitive data during demos and presentations. Perfect for SaaS demos while obscuring customer data.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["<all_urls>"],
   "icons": {
