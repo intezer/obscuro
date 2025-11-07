@@ -1,6 +1,6 @@
 {
   "name": "obscuro",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Chrome extension to hide sensitive data during demos and presentations",
   "main": "index.js",
   "scripts": {
