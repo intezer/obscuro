@@ -4,9 +4,9 @@
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-Extension-blue.svg)](https://chrome.google.com/webstore)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
 
-> **Demo your SaaS product on real customer environments without exposing sensitive data.**
+> **Share your screen without exposing sensitive data.**
 
-Obscuro is a Chrome extension that intelligently hides sensitive information during demos and presentations. No more creating mock data — just blur what matters and present with confidence.
+Obscuro is a Chrome extension that intelligently hides sensitive information in your browser. Just blur what matters and share your screen with confidence.
 
 ---
 
@@ -34,7 +34,7 @@ Obscuro is a Chrome extension that intelligently hides sensitive information dur
 
 ![Demo GIF](docs/demo.gif)
 
-*Watch Obscuro automatically blur sensitive customer data in real-time*
+*Watch Obscuro automatically blur sensitive data in real-time*
 
 ---
 
@@ -152,8 +152,8 @@ Exceptions to prevent blurring of specific content.
 
 ## 🎯 Use Cases
 
-### SaaS Demos
-Hide customer data while demoing your CRM, analytics platform, or admin dashboard.
+### Screen sharing
+Hide sensitive data while screen sharing your CRM, analytics platform, or admin dashboard.
 
 ### Healthcare
 Blur patient names, medical record numbers, and diagnoses during training sessions.
