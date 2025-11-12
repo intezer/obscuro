@@ -43,7 +43,7 @@ Obscuro is a Chrome extension that intelligently hides sensitive information in 
 ### Installation
 
 #### From Chrome Web Store (Recommended)
-1. Visit the [Chrome Web Store](https://chrome.google.com/webstore) (link coming soon)
+1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/obscuro-sensitive-data-hi/peljfjmphjkflheafjlnjmkmdppbcjap)
 2. Click "Add to Chrome"
 3. Start blurring!
 
