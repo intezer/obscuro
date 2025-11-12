@@ -157,7 +157,10 @@ class ObscuroContentScript {
 
     // Check if element matches any selector
     if (this.matchesSelectors(element)) {
-      element.classList.add('blurred');
+      const elementText = element.textContent || '';
+      if (!this.shouldIgnoreText(elementText)) {
+        element.classList.add('blurred');
+      }
     }
 
     // Process all child elements that match selectors
@@ -166,6 +169,10 @@ class ObscuroContentScript {
         const matchingElements = element.querySelectorAll(selector);
         matchingElements.forEach((el) => {
           if (!this.processedNodes.has(el) && !this.shouldIgnoreElement(el)) {
+            const elText = el.textContent || '';
+            if (this.shouldIgnoreText(elText)) {
+              return;
+            }
             this.processedNodes.add(el);
             el.classList.add('blurred');
           }
