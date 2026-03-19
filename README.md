@@ -6,15 +6,18 @@
 
 > **Share your screen without exposing sensitive data.**
 
-Obscuro is a Chrome extension that intelligently hides sensitive information in your browser. Just blur what matters and share your screen with confidence.
+Obscuro is a Chrome extension that intelligently hides sensitive information in your browser. You can either mask sensitive data or replace it with realistic scrambled stand-ins, then share your screen with confidence.
 
 ---
 
 ## ✨ Features
 
-- 🎯 **CSS Selector-based Blurring** - Target specific elements with precision
-- 🔍 **Regex Pattern Matching** - Automatically detect and blur sensitive text (emails, SSNs, credit cards, etc.)
-- 🚫 **Smart Ignore Rules** - Exclude specific content from blurring
+- 🎯 **CSS Selector-based Hiding** - Target specific elements with precision
+- 🔍 **Regex Pattern Matching** - Automatically detect sensitive text (emails, SSNs, credit cards, etc.)
+- � **Scramble Mode** - Replace sensitive values with realistic, deterministic fake values
+- 🌫️ **Blur Mode** - Keep the original text in place while visually blurring it
+- 🎛️ **Mode Switcher in Popup** - Toggle between Blur and Scramble without changing config
+- �🚫 **Smart Ignore Rules** - Exclude specific content from processing
 - ⚡ **Dynamic Content Support** - Works with React, Vue, and other SPAs via MutationObserver
 - 🎨 **Customizable Blur Effect** - Adjust the blur intensity to your needs by changing the CSS
 - 💾 **Import/Export Configs** - Share configurations across teams
@@ -34,7 +37,7 @@ Obscuro is a Chrome extension that intelligently hides sensitive information in 
 
 ![Demo GIF](docs/demo.gif)
 
-*Watch Obscuro automatically blur sensitive data in real-time*
+*Watch Obscuro automatically hide sensitive data in real-time*
 
 ---
 
@@ -45,7 +48,7 @@ Obscuro is a Chrome extension that intelligently hides sensitive information in 
 #### From Chrome Web Store (Recommended)
 1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/obscuro-sensitive-data-hi/peljfjmphjkflheafjlnjmkmdppbcjap)
 2. Click "Add to Chrome"
-3. Start blurring!
+3. Start hiding sensitive data!
 
 #### Manual Installation (Development)
 1. Clone this repository:
@@ -74,9 +77,18 @@ Obscuro is a Chrome extension that intelligently hides sensitive information in 
 
 ## 📖 Usage
 
+### Blur vs. Scramble
+
+Use the Obscuro popup to choose a mode:
+
+- **Blur** - Keeps the original value in the DOM and visually blurs it
+- **Scramble** - Replaces the visible value with a deterministic fake value generated locally
+
+Scramble mode is useful when blur is too distracting or when you want the page to remain readable during demos while still hiding sensitive values.
+
 ### Basic Configuration
 
-Click the Obscuro icon in your toolbar to open the configuration panel. The extension uses a JSON configuration file:
+Click the Obscuro icon in your toolbar to open the configuration panel. Use the mode dropdown to choose **Blur** or **Scramble**. The extension uses a JSON configuration file:
 
 ```json
 {
@@ -107,7 +119,7 @@ Click the Obscuro icon in your toolbar to open the configuration panel. The exte
 ### Configuration Options
 
 #### `selectors` (Array of Strings)
-CSS selectors to target elements for blurring.
+CSS selectors to target elements for hiding.
 
 **Examples:**
 - `"[data-sensitive='true']"` - Elements with data-sensitive attribute
@@ -116,7 +128,7 @@ CSS selectors to target elements for blurring.
 - `"#user-profile .address"` - Specific nested elements
 
 #### `regex` (Array of Objects)
-Regular expressions to match and blur text content.
+Regular expressions to match and hide sensitive text content.
 
 **Structure:**
 ```json
@@ -133,7 +145,7 @@ Regular expressions to match and blur text content.
 - Phone: `\\b\\d{3}[-.\\s]?\\d{3}[-.\\s]?\\d{4}\\b`
 
 #### `ignore` (Object)
-Exceptions to prevent blurring of specific content.
+Exceptions to prevent hiding of specific content.
 
 **Structure:**
 ```json
@@ -156,7 +168,7 @@ Exceptions to prevent blurring of specific content.
 Hide sensitive data while screen sharing your CRM, analytics platform, or admin dashboard.
 
 ### Healthcare
-Blur patient names, medical record numbers, and diagnoses during training sessions.
+Hide patient names, medical record numbers, and diagnoses during training sessions.
 
 ### Financial Services
 Mask account numbers, balances, and transaction details in presentations.
@@ -203,8 +215,9 @@ obscuro/
 ├── src/
 │   ├── content.ts      # Content script (main logic)
 │   ├── popup.ts        # Popup UI logic
+│   ├── scrambler.ts    # Deterministic local scramble engine
 │   ├── types.ts        # TypeScript types
-│   └── content.css     # Blur styles
+│   └── content.css     # Content styles for blur/scramble states
 ├── examples/           # Example configurations
 ├── icons/              # Extension icons
 ├── manifest.json       # Chrome extension manifest
@@ -217,10 +230,12 @@ obscuro/
 
 1. **Content Script Injection**: When you visit a page, `content.ts` is injected
 2. **Configuration Loading**: The script loads your config from Chrome storage
-3. **Initial Scan**: All elements matching your selectors are blurred
-4. **MutationObserver**: Watches for DOM changes to blur dynamically added content
-5. **Regex Processing**: Text nodes are scanned for regex patterns and wrapped in blur spans
-6. **Idempotency**: Uses `data-censor="1"` attribute to prevent re-wrapping
+3. **Mode Selection**: The popup stores whether the extension should blur or scramble matched content
+4. **Initial Scan**: All elements matching your selectors are processed using the active mode
+5. **MutationObserver**: Watches for DOM changes to process dynamically added content
+6. **Regex Processing**: Text nodes are scanned for regex patterns and wrapped in censor spans
+7. **Scramble Engine**: In scramble mode, sensitive values are replaced with deterministic fake values locally
+8. **Idempotency**: Uses `data-censor="1"` attribute to prevent re-wrapping
 
 ---
 
