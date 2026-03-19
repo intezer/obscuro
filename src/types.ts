@@ -1,9 +1,9 @@
-export interface RegexPattern {
+interface RegexPattern {
   pattern: string;
   flags?: string;
 }
 
-export interface Config {
+interface Config {
   version: string;
   selectors: string[];
   regex: RegexPattern[];
@@ -13,7 +13,10 @@ export interface Config {
   };
 }
 
-export interface StorageData {
+type ObscuroMode = 'blur' | 'scramble';
+
+interface StorageData {
   enabled: boolean;
   config: Config;
+  mode: ObscuroMode;
 }

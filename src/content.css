@@ -16,3 +16,16 @@
   padding: 0 2px;
   border-radius: 2px;
 }
+
+/* Scrambled text: no blur, subtle visual indicator */
+.scrambled {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.scrambled[data-censor="1"] {
+  padding: 0 2px;
+  border-radius: 2px;
+}

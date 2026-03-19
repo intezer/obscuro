@@ -1,22 +1,9 @@
-// Inline types for Chrome content script compatibility
-interface RegexPattern {
-  pattern: string;
-  flags?: string;
-}
-
-interface Config {
-  version: string;
-  selectors: string[];
-  regex: RegexPattern[];
-  ignore?: {
-    selectors?: string[];
-    regex?: RegexPattern[];
-  };
-}
+// Types are declared in types.ts (shared global scope, module: None)
 
 class ObscuroContentScript {
   private config: Config | null = null;
   private enabled = true;
+  private mode: ObscuroMode = 'blur';
   private observer: MutationObserver | null = null;
   private processedNodes = new WeakSet<Node>();
   private compiledRegex: RegExp[] = [];
@@ -49,12 +36,18 @@ class ObscuroContentScript {
           this.removeAllBlurs();
         }
       }
+      if (changes.mode !== undefined) {
+        this.mode = changes.mode.newValue || 'blur';
+        if (this.enabled) {
+          this.reprocessPage();
+        }
+      }
     });
   }
 
   private async loadConfig() {
     try {
-      const result = await chrome.storage.sync.get(['config', 'enabled']);
+      const result = await chrome.storage.sync.get(['config', 'enabled', 'mode']);
       
       if (result.config) {
         this.config = result.config;
@@ -67,6 +60,7 @@ class ObscuroContentScript {
       }
 
       this.enabled = result.enabled !== undefined ? result.enabled : true;
+      this.mode = result.mode || 'blur';
     } catch (error) {
       console.error('[Obscuro] Failed to load config:', error);
     }
@@ -136,6 +130,7 @@ class ObscuroContentScript {
   private reprocessPage() {
     this.removeAllBlurs();
     this.processedNodes = new WeakSet<Node>();
+    obscuroScrambler.clearCache();
     this.processInitialPage();
   }
 
@@ -151,14 +146,29 @@ class ObscuroContentScript {
         }
       });
 
-      // Remove censored spans
+      // Remove scrambled class and restore original text
+      root.querySelectorAll('.scrambled').forEach((el) => {
+        const element = el as HTMLElement;
+        element.classList.remove('scrambled');
+      });
+
+      // Remove censored/scrambled spans and restore original text
       root.querySelectorAll('[data-censor="1"]').forEach((span) => {
         const parent = span.parentNode;
         if (parent) {
-          const textContent = span.textContent || '';
+          // If scrambled, restore the original text
+          const originalText = span.getAttribute('data-obscuro-original');
+          const textContent = originalText || span.textContent || '';
           parent.replaceChild(document.createTextNode(textContent), span);
           (parent as ParentNode).normalize();
         }
+      });
+
+      // Remove scrambled marker from selector-matched elements (text is restored via data-censor spans above)
+      root.querySelectorAll('[data-obscuro-scrambled="1"]').forEach((el) => {
+        const element = el as HTMLElement;
+        element.removeAttribute('data-obscuro-scrambled');
+        element.classList.remove('scrambled');
       });
     };
 
@@ -182,7 +192,7 @@ class ObscuroContentScript {
     if (this.matchesSelectors(element)) {
       const elementText = element.textContent || '';
       if (!this.shouldIgnoreText(elementText)) {
-        this.applyBlurStyling(element);
+        this.applyCensoring(element);
       }
     }
 
@@ -197,7 +207,7 @@ class ObscuroContentScript {
               return;
             }
             this.processedNodes.add(el);
-            this.applyBlurStyling(el);
+            this.applyCensoring(el);
           }
         });
       } catch (error) {
@@ -228,7 +238,7 @@ class ObscuroContentScript {
             return NodeFilter.FILTER_REJECT;
           }
 
-          if (parent.classList.contains('blurred') || parent.hasAttribute('data-censor')) {
+          if (parent.classList.contains('blurred') || parent.classList.contains('scrambled') || parent.hasAttribute('data-censor')) {
             return NodeFilter.FILTER_REJECT;
           }
 
@@ -302,10 +312,21 @@ class ObscuroContentScript {
         fragments.forEach((fragment) => {
           if (fragment.censored) {
             const span = document.createElement('span');
-            span.className = 'blurred';
             span.setAttribute('data-censor', '1');
-            span.textContent = fragment.text;
-            this.applyBlurStyling(span);
+
+            if (this.mode === 'scramble') {
+              // Scramble mode: replace text with fake data
+              const scrambled = obscuroScrambler.scramble(fragment.text);
+              span.setAttribute('data-obscuro-original', fragment.text);
+              span.textContent = scrambled;
+              span.className = 'scrambled';
+            } else {
+              // Blur mode: blur the original text
+              span.textContent = fragment.text;
+              span.className = 'blurred';
+              this.applyBlurStyling(span);
+            }
+
             docFragment.appendChild(span);
           } else {
             docFragment.appendChild(document.createTextNode(fragment.text));
@@ -411,6 +432,56 @@ class ObscuroContentScript {
     return fragments;
   }
 
+  // Decide whether to blur or scramble a selector-matched element
+  private applyCensoring(element: Element) {
+    if (this.mode === 'scramble') {
+      this.applySelectorScramble(element);
+    } else {
+      this.applyBlurStyling(element);
+    }
+  }
+
+  // Scramble the visible text content of a selector-matched element
+  private applySelectorScramble(element: Element) {
+    const htmlEl = element as HTMLElement;
+    htmlEl.setAttribute('data-obscuro-scrambled', '1');
+    htmlEl.classList.add('scrambled');
+
+    // Collect leaf text nodes first, then wrap each in a censor span
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          const tagName = parent.tagName.toLowerCase();
+          if (tagName === 'script' || tagName === 'style' || tagName === 'noscript') {
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (parent.hasAttribute('data-censor')) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      }
+    );
+    const textNodes: Text[] = [];
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      textNodes.push(node as Text);
+    }
+
+    for (const textNode of textNodes) {
+      const text = textNode.textContent || '';
+      if (!text.trim()) continue;
+      const span = document.createElement('span');
+      span.setAttribute('data-censor', '1');
+      span.setAttribute('data-obscuro-original', text);
+      span.textContent = obscuroScrambler.scramble(text);
+      span.className = 'scrambled';
+      textNode.parentNode?.replaceChild(span, textNode);
+    }
+  }
+
   // Apply inline blur styling to work within shadow DOM boundaries too
   private applyBlurStyling(element: Element) {
     element.classList.add('blurred');
@@ -486,7 +557,7 @@ class ObscuroContentScript {
               return;
             }
             this.processedNodes.add(el);
-            this.applyBlurStyling(el);
+            this.applyCensoring(el);
           }
         });
       } catch (error) {
@@ -512,7 +583,7 @@ class ObscuroContentScript {
             return NodeFilter.FILTER_REJECT;
           }
 
-          if (parent.classList.contains('blurred') || parent.hasAttribute('data-censor')) {
+          if (parent.classList.contains('blurred') || parent.classList.contains('scrambled') || parent.hasAttribute('data-censor')) {
             return NodeFilter.FILTER_REJECT;
           }
 
@@ -541,7 +612,8 @@ class ObscuroContentScript {
     style.setAttribute('data-obscuro-style', '1');
     style.textContent = `
       .blurred { filter: blur(6px) !important; }
-      [data-censor="1"] { filter: blur(6px) !important; }
+      [data-censor="1"]:not(.scrambled) { filter: blur(6px) !important; }
+      .scrambled { user-select: none; }
     `;
     sr.appendChild(style);
   }

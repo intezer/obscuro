@@ -1,22 +1,9 @@
-// Inline types for Chrome extension compatibility
-interface RegexPattern {
-  pattern: string;
-  flags?: string;
-}
-
-interface Config {
-  version: string;
-  selectors: string[];
-  regex: RegexPattern[];
-  ignore?: {
-    selectors?: string[];
-    regex?: RegexPattern[];
-  };
-}
+// Types are declared in types.ts (shared global scope, module: None)
 
 class ObscuroPopup {
   private enabled = true;
   private config: Config | null = null;
+  private mode: ObscuroMode = 'blur';
 
   constructor() {
     this.init();
@@ -29,9 +16,10 @@ class ObscuroPopup {
   }
 
   private async loadState() {
-    const result = await chrome.storage.sync.get(['enabled', 'config']);
+    const result = await chrome.storage.sync.get(['enabled', 'config', 'mode']);
     this.enabled = result.enabled !== undefined ? result.enabled : true;
     this.config = result.config || null;
+    this.mode = result.mode || 'blur';
   }
 
   private setupEventListeners() {
@@ -41,15 +29,28 @@ class ObscuroPopup {
     const resetBtn = document.getElementById('resetConfig') as HTMLButtonElement;
     const importInput = document.getElementById('importConfig') as HTMLInputElement;
 
+    const modeSelect = document.getElementById('modeSelect') as HTMLSelectElement;
+
     toggleBtn?.addEventListener('click', () => this.toggleEnabled());
     saveBtn?.addEventListener('click', () => this.saveConfig());
     resetBtn?.addEventListener('click', () => this.resetConfig());
     importInput?.addEventListener('change', (e) => this.importConfig(e));
+    modeSelect?.addEventListener('change', () => this.changeMode(modeSelect.value as ObscuroMode));
 
     // Load config into textarea
     if (configTextarea && this.config) {
       configTextarea.value = JSON.stringify(this.config, null, 2);
     }
+
+    // Set mode dropdown to current value
+    if (modeSelect) {
+      modeSelect.value = this.mode;
+    }
+  }
+
+  private async changeMode(newMode: ObscuroMode) {
+    this.mode = newMode;
+    await chrome.storage.sync.set({ mode: this.mode });
   }
 
   private async toggleEnabled() {
